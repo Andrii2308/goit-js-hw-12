@@ -23,6 +23,9 @@ let totalHits = 0;
 form.addEventListener('submit', onSearch);
 loadMoreBtn.addEventListener('click', onLoadMore);
 
+// =======================
+// SEARCH
+// =======================
 async function onSearch(event) {
   event.preventDefault();
 
@@ -50,8 +53,14 @@ async function onSearch(event) {
 
     createGallery(data.hits);
 
+    // ⬇️ ВАЖЛИВО: обробка кінця колекції на 1-й сторінці
     if (page * 15 < totalHits) {
       showLoadMoreButton();
+    } else {
+      iziToast.info({
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topRight',
+      });
     }
   } catch {
     iziToast.error({
@@ -63,8 +72,12 @@ async function onSearch(event) {
   }
 }
 
+// =======================
+// LOAD MORE
+// =======================
 async function onLoadMore() {
   page += 1;
+  hideLoadMoreButton(); // ⬅️ ВАЖЛИВО: ховаємо кнопку під час запиту
   showLoader();
 
   try {
@@ -72,18 +85,27 @@ async function onLoadMore() {
     createGallery(data.hits);
     smoothScroll();
 
-    if (page * 15 >= totalHits) {
-      hideLoadMoreButton();
+    if (page * 15 < totalHits) {
+      showLoadMoreButton();
+    } else {
       iziToast.info({
         message: "We're sorry, but you've reached the end of search results.",
         position: 'topRight',
       });
     }
+  } catch {
+    iziToast.error({
+      message: 'Something went wrong. Please try again later.',
+      position: 'topRight',
+    });
   } finally {
     hideLoader();
   }
 }
 
+// =======================
+// SCROLL
+// =======================
 function smoothScroll() {
   const firstCard = document.querySelector('.gallery-item');
   if (!firstCard) return;
